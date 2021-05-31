@@ -3,41 +3,59 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AIController.h"
+#include "BehaviorTree/BlackboardData.h"
 #include "UtilityController.generated.h"
-
-class UtilityConsideration
-{
-public:
-	virtual float GetConsideration() { return 0; };
-};
 
 //Forward declaration
 class AUtilityController;
 
-USTRUCT()
-struct FUtilityAction
+UCLASS(Blueprintable)
+class UUtilityConsideration : public UObject
 {
-	virtual ~FUtilityAction() = default;
 	GENERATED_BODY()
-
-	TArray<UtilityConsideration*> UtilityConsiderations;
-
-	virtual bool IsActionPossible() { return false; }
-	
-	virtual float CalculateConsideration();
-
-	float ConsiderationWeight = 1.0f;
-	
-	virtual bool PerformAction(AUtilityController* Controller) { return false; }
+public:
+	UFUNCTION(BlueprintNativeEvent)
+	float GetConsideration(AUtilityController* Controller);
 };
 
 UCLASS(Blueprintable)
-class AIANDGAMESJAM2021_API AUtilityController : public AAIController
+class UUtilityAction : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TArray<UUtilityConsideration*> UtilityConsiderations;
+
+	UFUNCTION(BlueprintNativeEvent)
+	bool IsActionPossible();
+	
+	virtual float CalculateConsideration(AUtilityController* Controller);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float ConsiderationWeight = 1.0f;
+
+	UFUNCTION(BlueprintNativeEvent)
+	bool PerformAction(AUtilityController* Controller);
+};
+
+UCLASS(Blueprintable)
+class AIANDGAMESJAM2021_API AUtilityController : public AActor
 {
 	GENERATED_BODY()
 
-	TArray<FUtilityAction*> Actions;
+	AUtilityController();
+
+	virtual void PostInitializeComponents() override;
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	UBlackboardComponent* Blackboard;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UBlackboardData* BlackboardData;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TArray<UUtilityAction*> Actions;
 
 	UFUNCTION(BlueprintCallable)
 	void PerformBestAction();
