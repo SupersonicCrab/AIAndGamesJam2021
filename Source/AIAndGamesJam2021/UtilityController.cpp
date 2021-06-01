@@ -19,15 +19,19 @@ float UUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	if (UtilityConsiderations.Num() == 0)
 		return 0.0f;
 
+	UUtilityConsideration* FirstConsideration = NewObject<UUtilityConsideration>(this, UtilityConsiderations[0].Get());
+	
 	//If there is one consideration
 	if (UtilityConsiderations.Num() == 1)
-		return UtilityConsiderations[0]->GetConsideration(Controller);
+		return FirstConsideration->GetConsideration(Controller);
 
 	//Multiply all considerations together
-	float Consideration = UtilityConsiderations[0]->GetConsideration(Controller);		
-	for (int i = 1; i <= UtilityConsiderations.Num(); i++)
+	float Consideration = FirstConsideration->GetConsideration(Controller);		
+	for (int i = 1; i < UtilityConsiderations.Num(); i++)
 	{
-		Consideration *= UtilityConsiderations[i]->GetConsideration(Controller);
+		UUtilityConsideration* CurrentConsideration = NewObject<UUtilityConsideration>(this, UtilityConsiderations[i].Get());
+		
+		Consideration *= CurrentConsideration->GetConsideration(Controller);
 	}
 
 	//Apply compensation
@@ -70,17 +74,19 @@ void AUtilityController::PerformBestAction()
 	};
 
 	FAction BestAction;
-
+	
 	//Iterate through all actions
-	for (int i = 0; i <= Actions.Num(); i++)
+	for (int i = 0; i < Actions.Num(); i++)
 	{
+		UUtilityAction* CurrentAction = NewObject<UUtilityAction>(this, Actions[i].Get());
+		
 		//If action is not possible skip
-		if (!Actions[i]->IsActionPossible())
+		if (!CurrentAction->IsActionPossible())
 			continue;
 
 		//If new action is greater than current or current is null
-		if (BestAction.Action == nullptr || Actions[i]->CalculateConsideration(this) > BestAction.Consideration)
-			BestAction = FAction(Actions[i], Actions[i]->CalculateConsideration(this));
+		if (BestAction.Action == nullptr || CurrentAction->CalculateConsideration(this) > BestAction.Consideration)
+			BestAction = FAction(CurrentAction, CurrentAction->CalculateConsideration(this));
 	}
 
 	//Perform best action if action exists
