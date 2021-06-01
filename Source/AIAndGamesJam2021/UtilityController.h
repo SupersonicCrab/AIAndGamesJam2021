@@ -9,22 +9,24 @@
 //Forward declaration
 class AUtilityController;
 
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class UUtilityConsideration : public UObject
 {
 	GENERATED_BODY()
 public:
+	UUtilityConsideration(){};
 	UFUNCTION(BlueprintNativeEvent)
 	float GetConsideration(AUtilityController* Controller);
 };
 
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class UUtilityAction : public UObject
 {
 	GENERATED_BODY()
 public:
+	UUtilityAction(){};
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TArray<UUtilityConsideration*> UtilityConsiderations;
+	TArray<TSubclassOf<UUtilityConsideration>> UtilityConsiderations;
 
 	UFUNCTION(BlueprintNativeEvent)
 	bool IsActionPossible();
@@ -38,7 +40,7 @@ public:
 	bool PerformAction(AUtilityController* Controller);
 };
 
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class AIANDGAMESJAM2021_API AUtilityController : public AActor
 {
 	GENERATED_BODY()
@@ -55,7 +57,7 @@ public:
 	UBlackboardData* BlackboardData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TArray<UUtilityAction*> Actions;
+	TArray<TSubclassOf<UUtilityAction>> Actions;
 
 	UFUNCTION(BlueprintCallable)
 	void PerformBestAction();
