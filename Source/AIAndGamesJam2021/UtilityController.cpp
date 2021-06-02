@@ -1,35 +1,46 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UtilityController.h"
-#include "BehaviorTree/BlackboardComponent.h"
 
-bool UUtilityAction::IsActionPossible_Implementation()
+#include <string>
+
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+
+bool AUtilityAction::IsActionPossible_Implementation(AUtilityController* Controller)
 {
 	return true;
 }
 
-float UUtilityConsideration::GetConsideration_Implementation(AUtilityController* Controller)
+float AUtilityConsideration::GetConsideration_Implementation(AUtilityController* Controller)
 {
 	return 0.0f;
 }
 
-float UUtilityAction::CalculateConsideration(AUtilityController* Controller)
+float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 {
 	//If there is no considerations
 	if (UtilityConsiderations.Num() == 0)
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("No consideration found for %f"), *GetName()));
 		return 0.0f;
+	}
 
-	UUtilityConsideration* FirstConsideration = NewObject<UUtilityConsideration>(this, UtilityConsiderations[0].Get());
+	AUtilityConsideration* FirstConsideration = NewObject<AUtilityConsideration>(this, UtilityConsiderations[0].Get());
 	
-	//If there is one consideration
+	//If there is only one consideration
 	if (UtilityConsiderations.Num() == 1)
-		return FirstConsideration->GetConsideration(Controller);
+	{
+		const float Result = FirstConsideration->GetConsideration(Controller);
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Consideration for %s returned: %f"), *GetName(), Result));
+		return Result;
+	}
 
 	//Multiply all considerations together
 	float Consideration = FirstConsideration->GetConsideration(Controller);		
 	for (int i = 1; i < UtilityConsiderations.Num(); i++)
 	{
-		UUtilityConsideration* CurrentConsideration = NewObject<UUtilityConsideration>(this, UtilityConsiderations[i].Get());
+		AUtilityConsideration* CurrentConsideration = NewObject<AUtilityConsideration>(this, UtilityConsiderations[i].Get());
 		
 		Consideration *= CurrentConsideration->GetConsideration(Controller);
 	}
@@ -37,10 +48,14 @@ float UUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	//Apply compensation
 	const float ModificationFactor = 1 - (1 / UtilityConsiderations.Num());
 	const float MakeUpValue = (1 - Consideration) * ModificationFactor;
-	return (Consideration + (MakeUpValue * Consideration)) * ConsiderationWeight;
+	const float Result = (Consideration + (MakeUpValue * Consideration)) * ConsiderationWeight;
+
+	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Considerations for %s returned: %f"), *GetName(), Result));
+	
+	return Result;
 }
 
-bool UUtilityAction::PerformAction_Implementation(AUtilityController* Controller)
+bool AUtilityAction::PerformAction_Implementation(AUtilityController* Controller)
 {
 	return true;
 }
@@ -63,26 +78,30 @@ void AUtilityController::PerformBestAction()
 	{
 	public:
 		FAction(){};
-		FAction(UUtilityAction* Action_, float Consideration_)
+		FAction(AUtilityAction* Action_, float Consideration_)
 		{
 			Action = Action_;
 			Consideration = Consideration_;
 		};
 		
-		UUtilityAction* Action = nullptr;
+		AUtilityAction* Action = nullptr;
 		float Consideration;
 	};
 
+	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Utility controller %s is looking for best action"), *GetName()));
 	FAction BestAction;
 	
 	//Iterate through all actions
 	for (int i = 0; i < Actions.Num(); i++)
 	{
-		UUtilityAction* CurrentAction = NewObject<UUtilityAction>(this, Actions[i].Get());
+		AUtilityAction* CurrentAction = NewObject<AUtilityAction>(this, Actions[i].Get());
 		
 		//If action is not possible skip
-		if (!CurrentAction->IsActionPossible())
+		if (!CurrentAction->IsActionPossible(this))
+		{
+			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Action %s is not possible"), *CurrentAction->GetName()));
 			continue;
+		}
 
 		//If new action is greater than current or current is null
 		if (BestAction.Action == nullptr || CurrentAction->CalculateConsideration(this) > BestAction.Consideration)
@@ -91,5 +110,8 @@ void AUtilityController::PerformBestAction()
 
 	//Perform best action if action exists
 	if (BestAction.Action != nullptr)
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Performing action %s"), *BestAction.Action->GetName()));
 		BestAction.Action->PerformAction(this);
+	}
 }

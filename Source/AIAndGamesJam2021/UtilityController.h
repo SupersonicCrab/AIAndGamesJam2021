@@ -10,26 +10,26 @@
 class AUtilityController;
 
 UCLASS(Blueprintable, BlueprintType)
-class UUtilityConsideration : public UObject
+class AUtilityConsideration : public AActor
 {
 	GENERATED_BODY()
 public:
-	UUtilityConsideration(){};
+	AUtilityConsideration(){};
 	UFUNCTION(BlueprintNativeEvent)
 	float GetConsideration(AUtilityController* Controller);
 };
 
 UCLASS(Blueprintable, BlueprintType)
-class UUtilityAction : public UObject
+class AUtilityAction : public AActor
 {
 	GENERATED_BODY()
 public:
-	UUtilityAction(){};
+	AUtilityAction(){};
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TArray<TSubclassOf<UUtilityConsideration>> UtilityConsiderations;
+	TArray<TSubclassOf<AUtilityConsideration>> UtilityConsiderations;
 
 	UFUNCTION(BlueprintNativeEvent)
-	bool IsActionPossible();
+	bool IsActionPossible(AUtilityController* Controller);
 	
 	virtual float CalculateConsideration(AUtilityController* Controller);
 
@@ -57,8 +57,8 @@ public:
 	UBlackboardData* BlackboardData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TArray<TSubclassOf<UUtilityAction>> Actions;
+	TArray<TSubclassOf<AUtilityAction>> Actions;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, CallInEditor)
 	void PerformBestAction();
 };
