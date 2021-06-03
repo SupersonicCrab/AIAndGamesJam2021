@@ -2,6 +2,7 @@
 
 #include "UtilityController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 bool AUtilityAction::IsActionPossible_Implementation(AUtilityController* Controller)
@@ -28,7 +29,7 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	//If there is only one consideration
 	if (UtilityConsiderations.Num() == 1)
 	{
-		const float Result = FirstConsideration->GetConsideration(Controller) * ConsiderationWeight;
+		const float Result = UKismetMathLibrary::Clamp(FirstConsideration->GetConsideration(Controller), 0.0f, 1.0f) * ConsiderationWeight;
 		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Consideration for %s returned: %f"), *GetName(), Result));
 		return Result;
 	}
@@ -39,7 +40,7 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	{
 		AUtilityConsideration* CurrentConsideration = NewObject<AUtilityConsideration>(this, UtilityConsiderations[i].Get());
 		
-		Consideration *= CurrentConsideration->GetConsideration(Controller);
+		Consideration *= UKismetMathLibrary::Clamp(CurrentConsideration->GetConsideration(Controller), 0.0f, 1.0f);
 	}
 
 	//Apply compensation
