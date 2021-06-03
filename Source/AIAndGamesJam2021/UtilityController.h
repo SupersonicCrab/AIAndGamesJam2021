@@ -38,6 +38,9 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	bool PerformAction(AUtilityController* Controller);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString ActionName;
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -45,20 +48,11 @@ class AIANDGAMESJAM2021_API AUtilityController : public AActor
 {
 	GENERATED_BODY()
 
-	AUtilityController();
-
-	virtual void PostInitializeComponents() override;
-
+	AUtilityController(){};
 public:
-	UPROPERTY(BlueprintReadWrite)
-	UBlackboardComponent* Blackboard;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	UBlackboardData* BlackboardData;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<TSubclassOf<AUtilityAction>> Actions;
 
 	UFUNCTION(BlueprintCallable, CallInEditor)
-	void PerformBestAction();
+	AUtilityAction* PerformBestAction();
 };

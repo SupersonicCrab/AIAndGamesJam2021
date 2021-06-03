@@ -1,9 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UtilityController.h"
-
-#include <string>
-
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -22,7 +19,7 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	//If there is no considerations
 	if (UtilityConsiderations.Num() == 0)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("No consideration found for %f"), *GetName()));
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("No consideration found for %s"), *GetName()));
 		return 0.0f;
 	}
 
@@ -31,7 +28,7 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	//If there is only one consideration
 	if (UtilityConsiderations.Num() == 1)
 	{
-		const float Result = FirstConsideration->GetConsideration(Controller);
+		const float Result = FirstConsideration->GetConsideration(Controller) * ConsiderationWeight;
 		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Consideration for %s returned: %f"), *GetName(), Result));
 		return Result;
 	}
@@ -60,19 +57,7 @@ bool AUtilityAction::PerformAction_Implementation(AUtilityController* Controller
 	return true;
 }
 
-AUtilityController::AUtilityController()
-{
-	Blackboard = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackboard"));
-}
-
-void AUtilityController::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	Blackboard->InitializeBlackboard(*BlackboardData);
-}
-
-void AUtilityController::PerformBestAction()
+AUtilityAction* AUtilityController::PerformBestAction()
 {
 	struct FAction
 	{
@@ -113,5 +98,9 @@ void AUtilityController::PerformBestAction()
 	{
 		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Performing action %s"), *BestAction.Action->GetName()));
 		BestAction.Action->PerformAction(this);
+		return BestAction.Action;
 	}
+
+	//Return nullptr if no action can be taken
+	return nullptr;
 }
