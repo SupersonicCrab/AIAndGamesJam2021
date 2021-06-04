@@ -20,7 +20,7 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	//If there is no considerations
 	if (UtilityConsiderations.Num() == 0)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("No consideration found for %s"), *GetName()));
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("No consideration found for %s"), *GetName()), false);
 		return 0.0f;
 	}
 
@@ -30,7 +30,7 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	if (UtilityConsiderations.Num() == 1)
 	{
 		const float Result = UKismetMathLibrary::FClamp(FirstConsideration->GetConsideration(Controller), 0.0f, 1.0f) * ConsiderationWeight;
-		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Consideration for %s returned: %f"), *GetName(), Result));
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Consideration for %s returned: %f"), *GetName(), Result), false);
 		return Result;
 	}
 
@@ -48,7 +48,7 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	const float MakeUpValue = (1 - Consideration) * ModificationFactor;
 	const float Result = (Consideration + (MakeUpValue * Consideration)) * ConsiderationWeight;
 
-	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Considerations for %s returned: %f"), *GetName(), Result));
+	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Considerations for %s returned: %f"), *GetName(), Result), false);
 	
 	return Result;
 }
@@ -74,7 +74,7 @@ AUtilityAction* AUtilityController::PerformBestAction()
 		float Consideration;
 	};
 
-	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Utility controller %s is looking for best action"), *GetName()));
+	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Utility controller %s is looking for best action"), *GetName()), false);
 	FAction BestAction;
 	
 	//Iterate through all actions
@@ -85,7 +85,7 @@ AUtilityAction* AUtilityController::PerformBestAction()
 		//If action is not possible skip
 		if (!CurrentAction->IsActionPossible(this))
 		{
-			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Action %s is not possible"), *CurrentAction->GetName()));
+			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Action %s is not possible"), *CurrentAction->GetName()), false);
 			continue;
 		}
 
@@ -99,7 +99,7 @@ AUtilityAction* AUtilityController::PerformBestAction()
 	//Perform best action if action exists
 	if (BestAction.Action != nullptr)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Performing action %s"), *BestAction.Action->GetName()));
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Performing action %s"), *BestAction.Action->GetName()), false);
 		BestAction.Action->PerformAction(this);
 		return BestAction.Action;
 	}
