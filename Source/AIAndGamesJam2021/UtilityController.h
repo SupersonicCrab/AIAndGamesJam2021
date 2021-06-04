@@ -13,8 +13,10 @@ UCLASS(Blueprintable, BlueprintType)
 class AUtilityConsideration : public AActor
 {
 	GENERATED_BODY()
-public:
+
 	AUtilityConsideration(){};
+public:
+	
 	UFUNCTION(BlueprintNativeEvent)
 	float GetConsideration(AUtilityController* Controller);
 };
@@ -23,8 +25,10 @@ UCLASS(Blueprintable, BlueprintType)
 class AUtilityAction : public AActor
 {
 	GENERATED_BODY()
-public:
+
 	AUtilityAction(){};
+public:
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<TSubclassOf<AUtilityConsideration>> UtilityConsiderations;
 
@@ -50,6 +54,7 @@ class AIANDGAMESJAM2021_API AUtilityController : public AActor
 
 	AUtilityController(){};
 public:
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<TSubclassOf<AUtilityAction>> Actions;
 
