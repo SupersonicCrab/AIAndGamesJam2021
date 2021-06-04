@@ -29,18 +29,18 @@ float AUtilityAction::CalculateConsideration(AUtilityController* Controller)
 	//If there is only one consideration
 	if (UtilityConsiderations.Num() == 1)
 	{
-		const float Result = UKismetMathLibrary::Clamp(FirstConsideration->GetConsideration(Controller), 0.0f, 1.0f) * ConsiderationWeight;
+		const float Result = UKismetMathLibrary::FClamp(FirstConsideration->GetConsideration(Controller), 0.0f, 1.0f) * ConsiderationWeight;
 		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Consideration for %s returned: %f"), *GetName(), Result));
 		return Result;
 	}
 
 	//Multiply all considerations together
-	float Consideration = FirstConsideration->GetConsideration(Controller);		
+	float Consideration = UKismetMathLibrary::FClamp(FirstConsideration->GetConsideration(Controller), 0.0f, 1.0f);		
 	for (int i = 1; i < UtilityConsiderations.Num(); i++)
 	{
 		AUtilityConsideration* CurrentConsideration = NewObject<AUtilityConsideration>(this, UtilityConsiderations[i].Get());
 		
-		Consideration *= UKismetMathLibrary::Clamp(CurrentConsideration->GetConsideration(Controller), 0.0f, 1.0f);
+		Consideration *= UKismetMathLibrary::FClamp(CurrentConsideration->GetConsideration(Controller), 0.0f, 1.0f);
 	}
 
 	//Apply compensation
@@ -89,9 +89,11 @@ AUtilityAction* AUtilityController::PerformBestAction()
 			continue;
 		}
 
+		float NewScore = CurrentAction->CalculateConsideration(this);
+		
 		//If new action is greater than current or current is null
-		if (BestAction.Action == nullptr || CurrentAction->CalculateConsideration(this) > BestAction.Consideration)
-			BestAction = FAction(CurrentAction, CurrentAction->CalculateConsideration(this));
+		if (BestAction.Action == nullptr || NewScore > BestAction.Consideration)
+			BestAction = FAction(CurrentAction, NewScore);
 	}
 
 	//Perform best action if action exists
